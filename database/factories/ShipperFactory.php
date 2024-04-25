@@ -17,7 +17,8 @@ class ShipperFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => $this->faker->name,
+            'phone' => $this->faker->phoneNumber,
         ];
     }
 }
