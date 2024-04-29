@@ -8,6 +8,11 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Route::resource('categories', 'CategoryController');
 // Route::get('categories', [CategoryController::class, 'index']);
+// Route::post('categories', [CategoryController::class, 'store']);
+// Route::get('categories/{category}', [CategoryController::class, 'show']);
+// Route::patch('categories/{category}', [CategoryController::class, 'update']);
+// Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+
 Route::resource('categories', CategoryController::class);
+// Route::resource('categories', [CategoryController::class, 'index']);

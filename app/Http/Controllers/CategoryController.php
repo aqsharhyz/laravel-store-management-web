@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
@@ -19,7 +22,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return response()->json($this->model::all());
+        $categories = Category::all();
+        return CategoryResource::collection($categories);
     }
 
     /**
@@ -33,33 +37,31 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateCategoryRequest $request)
     {
-        $categoryWithSameName = $this->model::where('name', $request->name)->first();
-        if ($categoryWithSameName) {
-            return response()->json(['message' => 'Category already exists'], 400);
-        }
+        // $categoryWithSameName = $this->model::where('name', $request->name)->first();
 
-        $rules = [
-            'name' => 'required|string|min:3',
-            'description' => 'string'
-        ];
-        $validated = $request->validate($rules);
+        // if ($categoryWithSameName) {
+        //     return response()->json(['message' => 'Category already exists'], 400);
+        // }
+
+        $validated = $request->validated();
 
         $slug = Str::slug($validated['name']);
         $validated['slug'] = $slug;
 
-        $category = $this->model::create($validated);
+        $category = new Category($validated);
+        $category->save();
 
-        return response()->json($category);
+        return (new CategoryResource($category))->response()->setStatusCode(201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show(Category $category): CategoryResource
     {
-        return response()->json($category);
+        return CategoryResource::make($category);
     }
 
     /**
@@ -73,38 +75,48 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(int $id, UpdateCategoryRequest $request)
     {
-        $categoryCheck = $this->model::where('id', $category->id)->first();
-        if (!$category !== $categoryCheck->id) {
-            return response()->json(['message' => 'Category not found'], 404);
+        $category = Category::where('id', $id)->first();
+        if (!$category) {
+            throw new HttpResponseException(response()->json([
+                'errors' => [
+                    "message" => [
+                        "not found"
+                    ]
+                ]
+            ])->setStatusCode(404));
         }
 
-        $rules = [
-            'name' => 'string|min:3',
-            'description' => 'string'
-        ];
-        $validated = $request->validate($rules);
+        $validated = $request->validated();
 
-        if ($validated['name']) {
-            $categoryWithSameName = $this->model::where('name', $validated['name'])->whereNotIn('id', [$category->id])->first();
-            if ($categoryWithSameName) {
-                return response()->json(['message' => 'Category already exists'], 400);
-            }
+        if (isset($validated['name'])) {
+            $slug = Str::slug($validated['name']);
+            $validated['slug'] = $slug;
         }
-        $slug = Str::slug($validated['name']);
-        $validated['slug'] = $slug;
 
-        $category->update($validated);
+        $category->fill($validated);
+        $category->save();
 
-        return response()->json($category);
+        return CategoryResource::make($category);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(int $id)
     {
-        //
+        $category = Category::where('id', $id)->first();
+        if (!$category) {
+            throw new HttpResponseException(response()->json([
+                'errors' => [
+                    "message" => [
+                        "not found"
+                    ]
+                ]
+            ])->setStatusCode(404));
+        }
+        $category->delete();
+        return response()->json(['data' => true])->setStatusCode(200);
     }
 }

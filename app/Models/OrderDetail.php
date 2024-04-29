@@ -11,7 +11,6 @@ class OrderDetail extends Model
     use HasFactory;
 
     protected $table = "order_details";
-    protected $timestamps = true;
 
     public function order(): HasOne
     {
