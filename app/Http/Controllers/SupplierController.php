@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateSupplierRequest;
+use App\Http\Requests\UpdateSupplierRequest;
+use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 
@@ -12,7 +15,8 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        //
+        $suppliers = Supplier::all();
+        return SupplierResource::collection($suppliers);
     }
 
     /**
@@ -26,9 +30,14 @@ class SupplierController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateSupplierRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        $supplier = new Supplier($validated);
+        $supplier->save();
+
+        return (new SupplierResource($supplier))->response()->setStatusCode(201);
     }
 
     /**
@@ -36,7 +45,7 @@ class SupplierController extends Controller
      */
     public function show(Supplier $supplier)
     {
-        //
+        return new SupplierResource($supplier);
     }
 
     /**
@@ -50,9 +59,14 @@ class SupplierController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Supplier $supplier)
+    public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
-        //
+        $validated = $request->validated();
+
+        $supplier->fill($validated);
+        $supplier->save();
+
+        return new SupplierResource($supplier);
     }
 
     /**
@@ -60,6 +74,7 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        //
+        $supplier->delete();
+        return response()->json(['data' => true], 200);
     }
 }
