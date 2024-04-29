@@ -16,4 +16,6 @@ Route::get('/user', function (Request $request) {
 // Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
 
 Route::resource('categories', CategoryController::class);
+Route::get('categories/{category}/products', [CategoryController::class, 'showProducts']);
 Route::resource('suppliers', SupplierController::class);
+Route::get('suppliers/{supplier}/products', [SupplierController::class, 'showProducts']);

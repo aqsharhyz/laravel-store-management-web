@@ -19,7 +19,7 @@ class SupplierResource extends JsonResource
             'name' => $this->name,
             'phone' => $this->phone,
             'address' => $this->address,
-            // 'products' => ProductResource::collection($this->products),
+            'products' => new ProductCollection($this->whenLoaded('products')),
         ];
     }
 }

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
+use App\Http\Resources\SupplierCollection;
 use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
@@ -13,10 +15,10 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): SupplierCollection
     {
         $suppliers = Supplier::all();
-        return SupplierResource::collection($suppliers);
+        return SupplierCollection::make($suppliers);
     }
 
     /**
@@ -30,7 +32,7 @@ class SupplierController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateSupplierRequest $request)
+    public function store(CreateSupplierRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
@@ -43,8 +45,16 @@ class SupplierController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Supplier $supplier)
+    public function show(Supplier $supplier): SupplierResource
     {
+        return new SupplierResource($supplier);
+    }
+
+    public function showProducts(Supplier $supplier): SupplierResource
+    {
+        $supplier->load('products');
+        $supplier->load('products.category');
+        $supplier->products->setHidden(['supplier_id']);
         return new SupplierResource($supplier);
     }
 
@@ -59,7 +69,7 @@ class SupplierController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSupplierRequest $request, Supplier $supplier)
+    public function update(UpdateSupplierRequest $request, Supplier $supplier): SupplierResource
     {
         $validated = $request->validated();
 
@@ -72,7 +82,7 @@ class SupplierController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Supplier $supplier)
+    public function destroy(Supplier $supplier): JsonResponse
     {
         $supplier->delete();
         return response()->json(['data' => true], 200);

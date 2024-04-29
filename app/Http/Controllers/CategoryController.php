@@ -4,26 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    protected $model;
+    // protected $model;
     public function __construct()
     {
-        $this->model = new Category();
+        // $this->model = new Category();
     }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $categories = Category::all();
-        return CategoryResource::collection($categories);
+        $page = request()->get('page', 1);
+        $categories = Category::paginate(perPage: 10, page: $page);
+        return CategoryCollection::make($categories);
     }
 
     /**
@@ -37,14 +40,8 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateCategoryRequest $request)
+    public function store(CreateCategoryRequest $request): JsonResponse
     {
-        // $categoryWithSameName = $this->model::where('name', $request->name)->first();
-
-        // if ($categoryWithSameName) {
-        //     return response()->json(['message' => 'Category already exists'], 400);
-        // }
-
         $validated = $request->validated();
 
         $slug = Str::slug($validated['name']);
@@ -65,6 +62,16 @@ class CategoryController extends Controller
     }
 
     /**
+     * Display the specified resource with products.
+     */
+    public function showProducts(Category $category): CategoryResource
+    {
+        $category->load('products');
+        // $category->load('products.supplier');
+        return new CategoryResource($category);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Category $category)
@@ -75,7 +82,7 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(int $id, UpdateCategoryRequest $request)
+    public function update(int $id, UpdateCategoryRequest $request): CategoryResource
     {
         $category = Category::where('id', $id)->first();
         if (!$category) {
@@ -104,7 +111,7 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(int $id)
+    public function destroy(int $id): JsonResponse
     {
         $category = Category::where('id', $id)->first();
         if (!$category) {
