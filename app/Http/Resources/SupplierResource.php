@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,5 +22,11 @@ class SupplierResource extends JsonResource
             'address' => $this->address,
             'products' => new ProductCollection($this->whenLoaded('products')),
         ];
+    }
+
+    public function withResponse(Request $request, JsonResponse $response)
+    {
+        $response->header('X-Powered-By', 'Malik');
+        $response->header('X-Framework', 'Laravel');
     }
 }

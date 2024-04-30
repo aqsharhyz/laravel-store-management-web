@@ -14,6 +14,9 @@ class ProductCollection extends ResourceCollection
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'total' => count($this->collection),
+            'data' => ProductResource::collection($this->collection),
+        ];
     }
 }
